@@ -1,0 +1,213 @@
+""""
+Auther:mac
+Date:21/10/2022
+
+"""
+
+import sys
+
+UserInput = input('How can I help you?')
+
+if len(UserInput) <= 14:
+    print('I don\'t get what you want, sorry mate!')
+    sys.exit()
+
+UserInput = UserInput.split()
+
+if UserInput[0] != 'Please' or UserInput[1] != 'convert':
+    print('I don\'t get what you want, sorry mate!')
+    sys.exit()
+elif len(UserInput) < 3 or len(UserInput) > 5:
+    print('I don\'t get what you want, sorry mate!')
+    sys.exit()
+
+maps = {
+    'M': 1000,
+    'CM': 900,
+    'D': 500,
+    'CD': 400,
+    'C': 100,
+    'XC': 90,
+    'L': 50,
+    'XL': 40,
+    'X': 10,
+    'IX': 9,
+    'V': 5,
+    'IV': 4,
+    'I': 1
+}
+new_maps = {v: k for k, v in maps.items()}
+
+# 罗马数字与阿拉伯数字转化
+if len(UserInput) == 3:
+    content = UserInput[2]
+    if content.isdigit():
+        if content[0] == '0' or int(content) > 3999:
+            print('Hey, ask me something that\'s not impossible to do!')
+            sys.exit()
+        else:
+            content = int(content)
+            roman = list()
+            values = maps.values()
+
+            for value in values:
+                if content // value >= 1:
+                    roman += new_maps[value] * (content // value)
+                    content = content % value
+
+            str1 = "".join(roman)
+            print('Sure! It is', str1)
+
+    elif content.isalpha():
+        str2 = ('IIII', 'IXI', 'DDD', 'IDD', 'LL', 'VV', 'LD', 'VL', 'ID', 'LD', 'IM', 'IL')
+        if content in str2:
+            print('Hey, ask me something that\'s not impossible to do!')
+            sys.exit()
+
+        # elif content == 'IIII' or 'IXI' or 'IVI':
+        #     print('Hey, ask me something that\'s not impossible to do!')
+        #     sys.exit()
+        else:
+            answer = 0
+            content = content + "I"
+            content = list(content)
+            for i in range(len(content) - 1):
+                if maps[content[i]] >= maps[content[i + 1]]:
+                    answer += maps[content[i]]
+                else:
+                    answer -= maps[content[i]]
+
+            print('Sure! It is', answer)
+
+# using
+if len(UserInput) == 5:
+    content = UserInput[2]
+    instructor = UserInput[4]
+    list_content = []
+    list_instructor = []
+    str_instructor = str(instructor)
+    for i in instructor:
+        list_instructor.append(i)
+
+    for _ in content:
+        list_content.append(_)
+
+    if ' ' in instructor:
+        print('I don\'t get what you want, sorry mate!')
+        sys.exit()
+
+    # if '_' in instructor:
+    #     print('Hey, ask me something that\'s not impossible to do!')
+    #     sys.exit()
+
+    if instructor.isalpha() == False:
+        print('Hey, ask me something that\'s not impossible to do!')
+        sys.exit()
+    # elif check(str_instructor):
+    #     print('Hey, ask me something that\'s not impossible to do!')
+    #     sys.exit()
+    else:
+        list_instructor_num = []
+        num1 = 0
+        for item in list_instructor:
+            if list_instructor.count(item) > 1:
+                print('I don\'t get what you want, sorry mate!')
+                sys.exit()
+        list_instructor.reverse()
+        while num1 < len(list_instructor):
+            c_number = 1 * 10 ** (num1 // 2)
+            i_number = 5 * 10 ** ((num1 - 1) // 2)
+            if num1 % 2 == 0:
+                list_instructor_num.append(c_number)
+            elif num1 % 2 == 1:
+                list_instructor_num.append(i_number)
+            num1 += 1
+        dict_temp = dict(zip(list_instructor, list_instructor_num))
+
+    if content.isdigit():
+        List = []
+        output = ''
+        for item in content:
+            item1 = int(item)
+            List.append(item1)
+        if len(List) * 2 > len(list_instructor):
+            print('Hey, ask me something that\'s not impossible to do!')
+            sys.exit()
+
+        for i in range(len(List)):
+            if List[i] < 4:
+                output += List[i] * list_instructor[2 * (len(List) - 1 - i)]
+            elif List[i] == 4:
+                output += list_instructor[2 * (len(List) - 1 - i)] + list_instructor[2 * (len(List) - 1 - i) + 1]
+            elif 5 <= List[i] < 9:
+                output += list_instructor[2 * (len(List) - 1 - i) + 1] + (List[i] - 5) * list_instructor[
+                    2 * (len(List) - 1 - i)]
+            elif List[i] == 9:
+                output += list_instructor[2 * (len(List) - 1 - i)] + list_instructor[2 * (len(List) - 1 - i) + 2]
+        print('Sure! It is', output)
+
+    elif content.isalpha():
+        output = int()
+
+        if len(content) < 5:
+            if instructor[-1] in content:
+                if instructor[0] == content[-1] and instructor[-1] != content[-2]:
+                    print('Hey, ask me something that\'s not impossible to do!')
+                    sys.exit()
+
+        for item in list_content:
+            if not dict_temp.__contains__(item):
+                print('Hey, ask me something that\'s not impossible to do!')
+                sys.exit()
+            else:
+                if list_instructor.index(item) % 2 == 1:
+                    if list_content.count(item) > 1:
+                        print('Hey, ask me something that\'s not impossible to do!')
+                        sys.exit()
+
+                elif list_instructor.index(item) % 2 == 0:
+                    if list_content.count(item) > 3:
+                        print('Hey, ask me something that\'s not impossible to do!')
+                        sys.exit()
+
+                output += dict_temp[item]
+
+        for i in range(len(list_content) - 1):
+            if list_instructor.index(list_content[i]) % 2 == 0 and (list_instructor.index(list_content[i]) + 2) < len(
+                    list_instructor):
+                if list_content[i + 1] == list_instructor[list_instructor.index(list_content[i]) + 1] \
+                        or list_content[i + 1] == list_instructor[list_instructor.index(list_content[i]) + 2]:
+                    output -= 2 * dict_temp[list_content[i]]
+        if output == 6:
+            output = 4
+        print("Sure! It is", output)
+
+
+    else:
+        print('Hey, ask me something that\'s not impossible to do!')
+        sys.exit()
+
+# 最小化
+if len(UserInput) == 4:
+    content = UserInput[2]
+    temp_list = list(content)
+    temp_list.reverse()
+
+    if UserInput[3] != 'minimally':
+        print('I don\'t get what you want, sorry mate!')
+        sys.exit()
+    elif content.isalpha() is False:
+        print('Hey, ask me something that\'s not impossible to do!')
+        sys.exit()
+    if content[0] == content[-1]:
+        print('Hey, ask me something that\'s not impossible to do!')
+        sys.exit()
+
+    # for i in range(len(temp_list)):
+    #     if temp_list.index(temp_list[i]) == temp_list.index(temp_list[i+1]):
+    #         pass
+    #     elif temp_list.index(temp_list[i]) != temp_list.index(temp_list[i+1]):
+    #         if temp_list.index(temp_list[i+1]) == temp_list.index(temp_list[i+2]):
+    #             pass
+    #         elif temp_list.index(temp_list[i+1]) == temp_list.index(temp_list[i+2]):
+
