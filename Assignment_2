@@ -1,0 +1,535 @@
+import copy
+
+
+class MazeError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+class Maze:
+    def __init__(self, filename):
+        self.maze_walls = []  # Walls
+        self.filename = filename
+        self.maze_digits = []
+        self.maze = []  # Initial
+        self.maze_temp = []  # Contain Pillar
+        self.maze_inacc = []
+        self.maze_entry = []
+        maze_digits = self.maze_digits
+        with open(filename) as file:
+            for line in file:
+                self.maze_digits.append(list(''.join(line.split())))
+        self.empty_check(maze_digits)
+        self.check_input()
+        self.convert_to_maze(maze_digits)
+        self.convert_to_maze_temp(maze_digits)
+
+    def empty_check(self, maze_digits):
+        for item in maze_digits[:]:
+            if item == []:
+                maze_digits.remove(item)
+        return maze_digits
+
+    def check_input(self):
+        if len(self.maze_digits) == '0':
+            raise MazeError('Input does not represent a maze.')
+        for item in self.maze_digits:
+            if item[-1] == '1' or item[-1] == '3':
+                raise MazeError('Input does not represent a maze.')
+        for item in self.maze_digits[len(self.maze_digits) - 1]:
+            if item == '2' or item == '3':
+                raise MazeError('Input does not represent a maze.')
+
+        ### Out of rage
+        x_dim = len(self.maze_digits[0])
+        for item in self.maze_digits:
+            # 检查x的维度
+            if len(item) < 2 or len(item) > 31 or len(item) != x_dim:
+                raise MazeError('Incorrect input.')
+            for i in item:
+                if i not in ['0', '1', '2', '3']:
+                    raise MazeError('Incorrect input.')
+        if len(self.maze_digits) < 2 or len(self.maze_digits) > 41:
+            # 检查y的维度
+            raise MazeError('Incorrect input.')
+
+    def convert_to_maze(self, maze_digits):
+        for i in range(len(self.maze_digits) * 2 - 1):
+            self.maze.append([0] * (len(self.maze_digits[0]) * 2 - 1))
+
+        for i in range(len(self.maze_digits)):
+            for j in range(len(self.maze_digits[0])):
+                if self.maze_digits[i][j] == '0':
+                    continue
+                elif self.maze_digits[i][j] == '1':
+                    self.maze[i * 2][j * 2] = 1
+                    self.maze[i * 2][j * 2 + 1] = 1
+                    self.maze[i * 2][j * 2 + 2] = 1
+                elif self.maze_digits[i][j] == '2':
+                    self.maze[i * 2][j * 2] = 1
+                    self.maze[i * 2 + 1][j * 2] = 1
+                    self.maze[i * 2 + 2][j * 2] = 1
+                elif self.maze_digits[i][j] == '3':
+                    self.maze[i * 2][j * 2] = 1
+                    self.maze[i * 2][j * 2 + 1] = 1
+                    self.maze[i * 2][j * 2 + 2] = 1
+                    self.maze[i * 2 + 1][j * 2] = 1
+                    self.maze[i * 2 + 2][j * 2] = 1
+
+    def convert_to_maze_temp(self, maze_digits):
+        for i in range(len(self.maze_digits) * 2 - 1):
+            self.maze_temp.append([0] * (len(self.maze_digits[0]) * 2 - 1))
+
+        for i in range(len(self.maze_digits)):
+            for j in range(len(self.maze_digits[0])):
+                if self.maze_digits[i][j] == '0':
+                    self.maze_temp[i * 2][j * 2] = 1
+                elif self.maze_digits[i][j] == '1':
+                    self.maze_temp[i * 2][j * 2] = 1
+                    self.maze_temp[i * 2][j * 2 + 1] = 1
+                    self.maze_temp[i * 2][j * 2 + 2] = 1
+                elif self.maze_digits[i][j] == '2':
+                    self.maze_temp[i * 2][j * 2] = 1
+                    self.maze_temp[i * 2 + 1][j * 2] = 1
+                    self.maze_temp[i * 2 + 2][j * 2] = 1
+                elif self.maze_digits[i][j] == '3':
+                    self.maze_temp[i * 2][j * 2] = 1
+                    self.maze_temp[i * 2][j * 2 + 1] = 1
+                    self.maze_temp[i * 2][j * 2 + 2] = 1
+                    self.maze_temp[i * 2 + 1][j * 2] = 1
+                    self.maze_temp[i * 2 + 2][j * 2] = 1
+
+    def analyse(self):
+
+        gate_num = 0  # 门的数量
+        # 门的数量
+        for i in range(len(self.maze_temp)):
+            if i == 0 or i == len(self.maze_temp) - 1:
+                for j in range(len(self.maze_temp[0])):
+                    if self.maze_temp[i][j] == 0:
+                        gate_num += 1
+        for j in range(len(self.maze_temp[0])):
+            if j == 0 or j == len(self.maze_temp[0]) - 1:
+                for i in range(len(self.maze_temp)):
+                    if self.maze_temp[i][j] == 0:
+                        gate_num += 1
+
+        if gate_num == 0:
+            print('The maze has no gate.')
+        if gate_num == 1:
+            print('The maze has a single gate.')
+        if gate_num > 1:
+            print('The maze has', gate_num, 'gates.')
+
+
+        pillar_num = 0
+
+
+        for i in range(len(self.maze_temp)):
+            for j in range(len(self.maze_temp[0])):
+                if self.maze_temp[i][j] == 1:
+                    if i == 0 and j == 0:
+                        if self.maze_temp[i][j + 1] == 0 and self.maze_temp[i + 1][j] == 0:
+                            self.maze_temp[i][j] = 9  # 记录pillar的位置，9现在就是pillar了
+                            pillar_num += 1
+                    if i == 0 and j == len(self.maze_temp[0]) - 1:
+                        if self.maze_temp[i][j - 1] == 0 and self.maze_temp[i + 1][j] == 0:
+                            self.maze_temp[i][j] = 9
+                            pillar_num += 1
+                    if i == 0 and 0 < j < len(self.maze_temp[0]) - 1:
+                        if self.maze_temp[i][j - 1] == 0 and self.maze_temp[i][j + 1] == 0 and self.maze_temp[i + 1][
+                            j] == 0:
+                            self.maze_temp[i][j] = 9
+                            pillar_num += 1
+                    if i == len(self.maze_temp) - 1 and j == 0:
+                        if self.maze_temp[i][j + 1] == 0 and self.maze_temp[i - 1][j] == 0:
+                            self.maze_temp[i][j] = 9
+                            pillar_num += 1
+                    if 0 < i < len(self.maze_temp) - 1 and j == len(self.maze_temp[0]) - 1:
+                        if self.maze_temp[i][j - 1] == 0 and self.maze_temp[i + 1][j] == 0 and self.maze_temp[i - 1][
+                            j] == 0:
+                            self.maze_temp[i][j] = 9
+                            pillar_num += 1
+                    if i == len(self.maze_temp) - 1 and j == len(self.maze_temp[0]) - 1:
+                        if self.maze_temp[i][j - 1] == 0 and self.maze_temp[i - 1][j] == 0:
+                            self.maze_temp[i][j] = 9
+                            pillar_num += 1
+                    if i == len(self.maze_temp) - 1 and 0 < j < len(self.maze_temp[0]) - 1:
+                        if self.maze_temp[i - 1][j] == 0 and self.maze_temp[i][j + 1] == 0 and self.maze_temp[i][
+                            j - 1] == 0:
+                            self.maze_temp[i][j] = 9
+                            pillar_num += 1
+                    # if i != 0 and i != len(self.maze[0])-1 and j != 0 and j != len(self.maze)-1:
+                    if 0 < i < len(self.maze_temp) - 1 and 0 < j < len(self.maze_temp[0]) - 1:
+                        if self.maze_temp[i][j + 1] == 0 and self.maze_temp[i][j - 1] == 0 and self.maze_temp[i + 1][
+                            j] == 0 and self.maze_temp[i - 1][j] == 0:
+                            self.maze_temp[i][j] = 9
+                            pillar_num += 1
+
+        # print('Pillar的数量',pillar_num)
+
+        # 墙的数量
+        self.maze_walls = copy.deepcopy(self.maze_temp)
+        walls_num = self.colored_shape_walls()
+        if walls_num == 0:
+            print('The maze has no wall.')
+        if walls_num == 1:
+            print('The maze has walls that are all connected.')
+        if walls_num > 1:
+            print('The maze has', walls_num, 'sets of walls that are all connected.')
+
+        acc_num = self.colored_shape_areas()
+
+        # 墙的数量
+
+        # 不可连接的内部点数量
+        inner_points_num = 0
+        # for line in self.maze_walls:
+        #     print(line)
+        for i in range(len(self.maze_temp)):
+            for j in range(len(self.maze_temp[0])):
+                if self.maze_temp[i][j] == 0 and 0 < i < len(self.maze_temp) - 1 and 0 < j < len(self.maze_temp[0]) - 1:
+                    if i % 2 == 1 and j % 2 == 1:
+                        inner_points_num += 1
+
+        if inner_points_num == 0:
+            print('The maze has no inaccessible inner point.')
+        if inner_points_num == 1:
+            print('The maze has a unique inaccessible inner point.')
+        if inner_points_num > 1:
+            print('The maze has', inner_points_num, 'inaccessible inner points.')
+
+        if acc_num == 0:
+            print('The maze has no accessible area.')
+        if acc_num == 1:
+            print('The maze has a unique accessible area.')
+        if acc_num > 1:
+            print('The maze has', acc_num, 'accessible areas.')
+
+
+
+
+        # 不可连接的内部点数量
+
+        for i in range(len(self.maze_inacc)):
+            for j in range(len(self.maze_inacc[0])):
+                if self.maze_inacc[i][j] != 9:
+                    if self.maze_inacc[i][j] != 1 and self.maze_inacc != 0:
+                        self.maze_inacc[i][j] = 0
+
+        for i in range(len(self.maze_inacc)):
+            for j in range(len(self.maze_inacc[0])):
+                if self.maze_inacc[i][j] == 0 and 0 < i < len(self.maze_inacc) - 1 and 0 < j < len(
+                        self.maze_inacc[0]) - 1:
+                    self.test(i, j)
+
+
+        self.maze_entry = copy.deepcopy(self.maze_inacc)
+
+
+        for i in range(len(self.maze_entry)):
+            # 将所有死胡同堵死
+            for j in range(len(self.maze_entry[0])):
+                if i == 0 or i == len(self.maze_entry) - 1:
+                    if self.maze_entry[i][j] == 0:
+                        if i != 0 and self.maze_entry[i - 1][j] == 2:
+                            self.maze_entry[i][j] = 2
+                        if i < len(self.maze_entry) - 1 and self.maze_entry[i + 1][j] == 2:
+                            self.maze_entry[i][j] = 2
+                        if j != 0 and self.maze_entry[i][j - 1] == 2:
+                            self.maze_entry[i][j] = 2
+                        if j < len(self.maze_entry[0]) - 1 and self.maze_entry[i][j + 1] == 2:
+                            self.maze_entry[i][j] = 2
+                if j == 0 or j == len(self.maze_entry[0]) - 1:
+                    if self.maze_entry[i][j] == 0:
+                        if i != 0 and self.maze_entry[i - 1][j] == 2:
+                            self.maze_entry[i][j] = 2
+                        if i < len(self.maze_entry) - 1 and self.maze_entry[i + 1][j] == 2:
+                            self.maze_entry[i][j] = 2
+                        if j != 0 and self.maze_entry[i][j - 1] == 2:
+                            self.maze_entry[i][j] = 2
+                        if j < len(self.maze_entry[0]) - 1 and self.maze_entry[i][j + 1] == 2:
+                            self.maze_entry[i][j] = 2
+
+        lasttwo_num = self.cul_num()
+
+        if lasttwo_num == 0:
+            print('The maze has no accessible cul-de-sac.')
+        if lasttwo_num == 1:
+            print('The maze has accessible cul-de-sacs that are all connected.')
+        if lasttwo_num > 1:
+            print('The maze has', lasttwo_num, 'sets of accessible cul-de-sacs that are all connected.')
+
+
+
+
+
+        lastone_num = self.entry_exit_num()
+        if lastone_num == 0:
+            print('The maze has no entry-exit path with no intersection not to cul-de-sacs.')
+        if lastone_num == 1:
+            print('The maze has a unique entry-exit path with no intersection not to cul-de-sacs.')
+        if lastone_num > 1:
+            print('The maze has', lastone_num, 'entry-exit paths with no intersections not to cul-de-sacs.')
+
+
+
+
+    def test(self, i, j):
+        if self.maze_inacc[i][j] == 0 and 0 < i < len(self.maze_inacc) - 1 and 0 < j < len(self.maze_inacc[0]) - 1:
+            if self.maze_inacc[i + 1][j] == 0 and self.maze_inacc[i - 1][j] != 0 and self.maze_inacc[i][j + 1] != 0 and \
+                    self.maze_inacc[i][j - 1] != 0:
+                self.maze_inacc[i][j] = 2
+                self.test(i + 1, j)
+            if self.maze_inacc[i + 1][j] != 0 and self.maze_inacc[i - 1][j] == 0 and self.maze_inacc[i][j + 1] != 0 and \
+                    self.maze_inacc[i][j - 1] != 0:
+                self.maze_inacc[i][j] = 2
+                self.test(i - 1, j)
+            if self.maze_inacc[i + 1][j] != 0 and self.maze_inacc[i - 1][j] != 0 and self.maze_inacc[i][j + 1] == 0 and \
+                    self.maze_inacc[i][j - 1] != 0:
+                self.maze_inacc[i][j] = 2
+                self.test(i, j + 1)
+            if self.maze_inacc[i + 1][j] != 0 and self.maze_inacc[i - 1][j] != 0 and self.maze_inacc[i][j + 1] != 0 and \
+                    self.maze_inacc[i][j - 1] == 0:
+                self.maze_inacc[i][j] = 2
+                self.test(i, j - 1)
+  
+
+    def cul_num(self):
+        color = 2
+        for i in range(len(self.maze_inacc)):
+            for j in range(len(self.maze_inacc[0])):
+                if self.maze_inacc[i][j] == 2:
+                    color += 1
+                    self.cul_locate(i, j, color)
+        return color - 2
+
+    def cul_locate(self, i, j, color):
+        self.maze_inacc[i][j] = color
+        if 0 < i < len(self.maze_inacc) - 1 and 0 < j < len(self.maze_inacc[0]) - 1:
+            if i != 0 and self.maze_inacc[i - 1][j] == 2:
+                self.cul_locate(i - 1, j, color)
+            if i < len(self.maze_inacc) - 1 and self.maze_inacc[i + 1][j] == 2:
+                self.cul_locate(i + 1, j, color)
+            if j != 0 and self.maze_inacc[i][j - 1] == 2:
+                self.cul_locate(i, j - 1, color)
+            if j < len(self.maze_inacc[0]) - 1 and self.maze_inacc[i][j + 1] == 2:
+                self.cul_locate(i, j + 1, color)
+
+    def entry_exit_num(self):  ## 最后一问，寻找entry-exit
+        maze_temp = copy.deepcopy(self.maze_entry)
+        for i in range(len(self.maze_temp)):
+            for j in range(len(self.maze_temp[0])):
+                if maze_temp[i][j] == 9 or maze_temp == 2:
+                    maze_temp[i][j] = 1
+        # print('....')
+        # for item in maze_temp:
+        #     print(item)
+
+        color = 3
+        for i in range(len(self.maze_entry)):
+            for j in range(len(self.maze_entry[0])):
+                if i == 0 or i == len(self.maze_entry) - 1 or j == 0 or j == len(self.maze_entry[0]) - 1:
+                    if self.maze_entry[i][j] == 0:
+                        self.maze_entry[i][j] = 3
+
+                        # color += 1
+                        self.entry_exit_search(i, j, color)
+
+        # print('test')
+        # for item in self.maze_entry:
+        #     print(item)
+
+
+        for i in range(len(self.maze_entry)):
+            for j in range(len(self.maze_entry[0])):
+                if 0 < i < len(self.maze_entry) - 1 and 0 < j < len(self.maze_entry[0]) - 1:
+                    if self.maze_entry[i][j] == 3:
+                        if self.maze_entry[i+1][j] == 0 or self.maze_entry[i-1][j] == 0 or self.maze_entry[i][j+1] == 0 or self.maze_entry[i][j-1] == 0:
+                            self.search_error_change(i, j)
+                        if self.maze_entry[i+1][j] == 3 and self.maze_entry[i-1][j] == 3 and self.maze_entry[i][j+1] == 3 and self.maze_entry[i][j-1] != 3:
+                            self.search_error_change(i, j)
+                        if self.maze_entry[i+1][j] != 3 and self.maze_entry[i-1][j] == 3 and self.maze_entry[i][j+1] == 3 and self.maze_entry[i][j-1] == 3:
+                            self.search_error_change(i, j)
+                        if self.maze_entry[i+1][j] == 3 and self.maze_entry[i-1][j] != 3 and self.maze_entry[i][j+1] == 3 and self.maze_entry[i][j-1] == 3:
+                            self.search_error_change(i, j)
+                        if self.maze_entry[i + 1][j] == 3 and self.maze_entry[i - 1][j] == 3 and self.maze_entry[i][j + 1] != 3 and self.maze_entry[i][j - 1] == 3:
+                            self.search_error_change(i, j)
+                        # if self.maze_entry[i+1][j] != 3 and self.maze_entry[i-1][j] == 3 and self.maze_entry[i][j+1] != 3 and self.maze_entry[i][j-1] == 3:
+                        #     self.search_error_change(i, j)
+
+
+
+
+
+
+        for i in range(len(self.maze_entry)):
+            for j in range(len(self.maze_entry[0])):
+                if self.maze_entry[i][j] == 4:
+                    self.maze_entry[i][j] = 0
+
+        for i in range(len(self.maze_entry)):
+            for j in range(len(self.maze_entry[0])):
+                if self.maze_entry[i][j] == 3:
+                    if i != 0 and self.maze_entry[i - 1][j] == 0:
+                        self.maze_entry[i][j] = 0
+                    if i < len(self.maze_entry) - 1 and self.maze_entry[i + 1][j] == 0:
+                        self.maze_entry[i][j] = 0
+
+                    if j != 0 and self.maze_entry[i][j - 1] == 0:
+                        self.maze_entry[i][j] = 0
+
+                    if j < len(self.maze_entry[0]) - 1 and self.maze_entry[i][j + 1] == 0:
+                        self.maze_entry[i][j] = 0
+
+        num = self.final_search_num()
+
+        # 最后一小问的maze 目前等于self.maze_entry
+        # print('..finalllll..')
+        # for item in self.maze_entry:
+        #     print(item)
+
+        return num
+
+    def final_search_num(self):
+        color = 10
+        for i in range(len(self.maze_entry)):
+            for j in range(len(self.maze_entry[0])):
+                if self.maze_entry[i][j] == 3:
+                    color += 1
+                    self.final_Search(i, j, color)
+
+        return color - 10
+
+    def final_Search(self, i, j, color):
+        self.maze_entry[i][j] = color
+        # waiting_search = []
+        if i != 0 and self.maze_entry[i - 1][j] == 3:
+            self.final_Search(i - 1, j, color)
+        if i < len(self.maze_entry) - 1 and self.maze_entry[i + 1][j] == 3:
+            self.final_Search(i + 1, j, color)
+        if j != 0 and self.maze_entry[i][j - 1] == 3:
+            self.final_Search(i, j - 1, color)
+        if j < len(self.maze_entry[0]) - 1 and self.maze_entry[i][j + 1] == 3:
+            self.final_Search(i, j + 1, color)
+
+    def search_error_change(self, i, j):
+        self.maze_entry[i][j] = 4
+        if i != 0 and self.maze_entry[i - 1][j] == 3:
+            self.maze_entry[i - 1][j] = 4
+            self.search_error_change(i - 1, j)
+        if i < len(self.maze_entry) - 1 and self.maze_entry[i + 1][j] == 3:
+            self.maze_entry[i + 1][j] = 4
+            self.search_error_change(i + 1, j)
+        if j != 0 and self.maze_entry[i][j - 1] == 3:
+            self.maze_entry[i][j - 1] = 4
+            self.search_error_change(i, j - 1)
+        if j < len(self.maze_entry[0]) - 1 and self.maze_entry[i][j + 1] == 3:
+            self.maze_entry[i][j + 1] = 4
+            self.search_error_change(i, j + 1)
+
+
+
+    def entry_exit_search(self, i, j, color):
+        self.maze_entry[i][j] = color
+        # waiting_search = []
+        if i != 0 and self.maze_entry[i - 1][j] == 0:
+            if self.search_zero(i - 1, j) is True:
+                self.maze_entry[i - 1][j] = 3
+                self.entry_exit_search(i - 1, j, color)
+            if self.search_zero(i - 1, j) is False:
+                pass
+        if i < len(self.maze_entry) - 1 and self.maze_entry[i + 1][j] == 0:
+            if self.search_zero(i + 1, j) is True:
+                self.maze_entry[i + 1][j] = 3
+                self.entry_exit_search(i + 1, j, color)
+            if self.search_zero(i + 1, j) is False:
+                pass
+        if j != 0 and self.maze_entry[i][j - 1] == 0:
+            if self.search_zero(i, j - 1) is True:
+                self.maze_entry[i][j - 1] = 3
+                self.entry_exit_search(i, j - 1, color)
+            if self.search_zero(i, j - 1) is False:
+                pass
+        if j < len(self.maze_entry[0]) - 1 and self.maze_entry[i][j + 1] == 0:
+            if self.search_zero(i, j + 1) is True:
+                self.maze_entry[i][j + 1] = 3
+                self.entry_exit_search(i, j + 1, color)
+            if self.search_zero(i, j + 1) is False:
+                pass
+
+    def search_zero(self, i, j):
+        if 0 < i < len(self.maze_entry) - 1 and 0 < j < len(self.maze_entry[0]):
+            if self.maze_entry[i+1][j] == 0 and self.maze_entry[i-1][j] != 0 and self.maze_entry[i][j+1] != 0 and self.maze_entry[i][j-1] != 0:
+                return True
+            if self.maze_entry[i+1][j] != 0 and self.maze_entry[i-1][j] == 0 and self.maze_entry[i][j+1] != 0 and self.maze_entry[i][j-1] != 0:
+                return True
+            if self.maze_entry[i+1][j] != 0 and self.maze_entry[i-1][j] != 0 and self.maze_entry[i][j+1] == 0 and self.maze_entry[i][j-1] != 0:
+                return True
+            if self.maze_entry[i+1][j] != 0 and self.maze_entry[i-1][j] != 0 and self.maze_entry[i][j+1] != 0 and self.maze_entry[i][j-1] == 0:
+                return True
+            else:
+                return False
+
+
+
+    def colored_shape_walls(self):
+        color = 1
+        for i in range(len(self.maze_walls)):
+            for j in range(len(self.maze_walls[0])):
+                if self.maze_walls[i][j] == 1:
+                    color += 1
+                    self.search_walls(i, j, color)
+
+        return color - 1
+
+    def search_walls(self, i, j, color):
+        self.maze_walls[i][j] = color
+        # waiting_search = []
+        if i != 0 and self.maze_walls[i - 1][j] == 1:
+            self.search_walls(i - 1, j, color)
+        if i < len(self.maze_walls) - 1 and self.maze_walls[i + 1][j] == 1:
+            self.search_walls(i + 1, j, color)
+        if j != 0 and self.maze_walls[i][j - 1] == 1:
+            self.search_walls(i, j - 1, color)
+        if j < len(self.maze_walls[0]) - 1 and self.maze_walls[i][j + 1] == 1:
+            self.search_walls(i, j + 1, color)
+
+    def colored_shape_areas(self):  ## 寻找accessible area
+        color = 1
+        for i in range(len(self.maze_temp)):
+            for j in range(len(self.maze_temp[0])):
+                if i == 0 or i == len(self.maze_temp) - 1 or j == 0 or j == len(self.maze_temp[0]) - 1:
+                    if self.maze_temp[i][j] == 0:
+                        color += 1
+                        self.search_area(i, j, color)
+
+        self.maze_inacc = copy.deepcopy(self.maze_temp)
+        for i in range(len(self.maze_inacc)):
+            for j in range(len(self.maze_inacc[0])):
+                if self.maze_inacc[i][j] != 9:
+                    if self.maze_inacc[i][j] != 1 and self.maze_inacc != 0:
+                        self.maze_inacc[i][j] = 0
+
+        # print(color)
+        return color - 1
+
+    def search_area(self, i, j, color):
+        self.maze_temp[i][j] = color
+        # waiting_search = []
+        if i != 0 and self.maze_temp[i - 1][j] == 0:
+            self.search_area(i - 1, j, color)
+        if i < len(self.maze_temp) - 1 and self.maze_temp[i + 1][j] == 0:
+            self.search_area(i + 1, j, color)
+        if j != 0 and self.maze_temp[i][j - 1] == 0:
+            self.search_area(i, j - 1, color)
+        if j < len(self.maze_temp[0]) - 1 and self.maze_temp[i][j + 1] == 0:
+            self.search_area(i, j + 1, color)
+
+    def display(self):
+        print(self.maze_digits)
+        # REPLACE PASS ABOVE WITH YOUR CODE
+
+
+maze = Maze('maze_1.txt')
+maze.analyse()
