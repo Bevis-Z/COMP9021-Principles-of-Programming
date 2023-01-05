@@ -1,3 +1,3 @@
 # COMP9021-Python
-UNSW Master of IT - COMP9024
+2022 Term 3 UNSW Master of IT
 Python Code & Study outcome of myself.
