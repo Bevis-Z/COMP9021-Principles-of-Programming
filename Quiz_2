@@ -1,0 +1,117 @@
+# COMP9021 22T3
+# Quiz 2 *** Due Friday Week 4 @ 9.00pm
+#        *** Late penalty 5% per day
+#        *** Not accepted after Monday Week 5 @ 9.00pm
+
+# DO *NOT* WRITE YOUR NAME TO MAINTAIN ANONYMITY FOR PLAGIARISM DETECTION
+
+
+# Reading the number written in base 8 from right to left,
+# keeping the leading 0's, if any:
+# 0: move N     1: move NE    2: move E     3: move SE
+# 4: move S     5: move SW    6: move W     7: move NW
+#
+# We start from a position that is the unique position
+# where the switch is on.
+#
+# Moving to a position switches on to off, off to on there.
+
+import sys
+
+on = '\u26aa'
+off = '\u26ab'
+code = input('Enter a non-strictly negative integer: ').strip()
+try:
+    if code[0] == '-':
+        raise ValueError
+    int(code)
+except ValueError:
+    print('Incorrect input, giving up.')
+    sys.exit()
+nb_of_leading_zeroes = 0
+for i in range(len(code) - 1):
+    if code[i] == '0':
+        nb_of_leading_zeroes += 1
+    else:
+        break
+print("Keeping leading 0's, if any, in base 8,", code, 'reads as',
+      '0' * nb_of_leading_zeroes + f'{int(code):o}.'
+     )
+print()
+
+# INSERT YOUR CODE HERE
+base8_numbers = str('0' * nb_of_leading_zeroes) + str(f'{int(code):o}')
+move_list = [[], []]
+move_list[0].append((0, 0))
+x = 0
+y = 0
+
+
+# turn on/off the light
+def light(x, y):
+    if (x, y) in move_list[0]:
+        move_list[0].remove((x, y))
+        move_list[1].append((x, y))
+    elif (x, y) in move_list[1]:
+        move_list[0].remove((x, y))
+        move_list[1].append((x, y))
+    else:
+        move_list[0].append((x, y))
+
+
+# figure the numbers in base8 from left to the right
+
+distance = len(base8_numbers) - 1
+while distance >= 0:
+    if base8_numbers[distance] == '0':
+        x += 1
+    elif base8_numbers[distance] == '1':
+        x += 1
+        y -= 1
+    elif base8_numbers[distance] == '2':
+        y = y - 1
+    elif base8_numbers[distance] == '3':
+        x -= 1
+        y -= 1
+    elif base8_numbers[distance] == '4':
+        x -= 1
+    elif base8_numbers[distance] == '5':
+        x -= 1
+        y += 1
+    elif base8_numbers[distance] == '6':
+        y += 1
+    else:
+        x += 1
+        y += 1
+    light(x, y)
+    distance = distance - 1
+
+max_x, max_y = 10, 10
+min_x, min_y = -10, -10
+
+for i in move_list[0]:
+    if i[0] > min_y:
+        min_y = i[0]
+    if i[0] < max_y:
+        max_y = i[0]
+    if i[1] > min_x:
+        min_x = i[1]
+    if i[1] < max_x:
+        max_x = i[1]
+
+real_x = min_x
+real_y = min_y
+
+# out put real map
+while real_y >= max_y:
+    if real_x >= max_x:
+        if (real_y, real_x) in move_list[0]:
+            print(on, end="")
+            real_x -= 1
+        else:
+            print(off, end="")
+            real_x -= 1
+    else:
+        print()
+        real_x = min_x
+        real_y -= 1
