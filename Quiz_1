@@ -1,0 +1,93 @@
+# COMP9021 22T3
+# Quiz 1 *** Due Friday Week 3 @ 9.00pm
+#        *** Late penalty 5% per day
+#        *** Not accepted after Monday Week 4 @ 9.00pm
+
+# DO *NOT* WRITE YOUR NAME TO MAINTAIN ANONYMITY FOR PLAGIARISM DETECTION
+
+
+import sys
+from random import seed, randrange
+from pprint import pprint
+
+try:
+    arg_for_seed, upper_bound = (abs(int(x)) + 1 for x in input('Enter two integers: ').split())
+except ValueError:
+    print('Incorrect input, giving up.')
+    sys.exit()
+
+seed(arg_for_seed)
+mapping = {}
+for i in range(1, upper_bound):
+    r = randrange(-upper_bound // 8, upper_bound)
+    if r > 0:
+        mapping[i] = r
+print('\nThe generated mapping is:')
+print('  ', mapping)
+
+
+# sorted() can take as argument a list, a dictionary, a set...
+keys = sorted(mapping.keys())
+print('\nThe keys are, from smallest to largest: ')
+print('  ', keys)
+
+cycles = []
+reversed_dict_per_length = {}
+
+# INSERT YOUR CODE HERE
+key_list = []
+value_list = []
+cycle = []
+cycle_temp = []
+count = 0
+for key,value in mapping.items():
+    key_list.append(key)
+    value_list.append(value)
+for i in range(len(key_list)):
+    cycle_temp.append(key_list[i])
+    cycle_temp.append(value_list[i])
+    if cycle_temp[0] == cycle_temp[1]:
+        cycle.append([cycle_temp[0]])
+        cycle_temp = []
+    else:
+        while count<len(key_list):
+            temp = cycle_temp[-1]
+            if temp in key_list:
+                cycle_temp.append(value_list[key_list.index(temp)])
+            else:
+                break
+            if cycle_temp[0]==cycle_temp[-1]:
+                cycle.append(cycle_temp[:-1])
+                break
+            count+=1
+    count = 0
+    cycle_temp = []
+for i in cycle:
+    i.sort()
+    if i not in cycles:
+        cycles.append(i)
+
+
+
+temp_mapping = mapping
+value_key={}
+
+for key,value in temp_mapping.items():
+    if value not in value_key:
+        value_key[value]=[key]
+    
+    else:
+        value_key[value].append(key)
+
+for key,value in value_key.items():
+    if len(value) not in reversed_dict_per_length:
+        reversed_dict_per_length[len(value)]={key:value}
+    
+    else:
+        reversed_dict_per_length[len(value)][key]=value
+
+
+print('\nProperly ordered, the cycles given by the mapping are: ')
+print('  ', cycles)
+print('\nThe (triply ordered) reversed dictionary per lengths is: ')
+pprint(reversed_dict_per_length)
