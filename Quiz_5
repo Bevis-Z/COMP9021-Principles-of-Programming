@@ -1,0 +1,109 @@
+from random import seed, randrange
+import sys
+import math
+
+dim = 10
+
+
+def display_grid():
+    for row in grid:
+        print('   ', *row)
+
+
+def r_grid():
+    temp_grid = []
+    for item in grid:
+        temp_grid.append(item)
+    for i in range(len(temp_grid)):
+        temp_grid[i] = [0] * i + temp_grid[i] + [0] * (len(temp_grid) - 1 - i)
+    return temp_grid
+
+
+def l_grid():
+    temp_grid = []
+    for item in grid:
+        temp_grid.append(item)
+    for i in range(len(temp_grid)):
+        temp_grid[i] = [0] * i + [0] * (len(temp_grid) - 1 - i) + temp_grid[i]
+    return temp_grid
+
+
+def find_largest(grid):
+    heights = [0] * (len(grid[0]))
+    Output_List = []
+    find_max(Output_List, grid, heights)
+    Output_List = max(Output_List)
+    return Output_List
+
+
+def find_max(Output_List, grid, hight):
+    for item in grid:
+        for j in range(len(grid[0])):
+            if item[j] == 1:
+                hight[j] = hight[j] + 1
+            else:
+                hight[j] = 0
+
+        stack = []
+        temp = 0
+        hight.append(-1)
+        for i in range(len(hight)):
+            value = hight[i]
+            while stack != [] and value <= hight[stack[-1]]:
+                h = hight[stack.pop()]
+                if h == 1:
+                    h = 0
+                if len(stack) == 0:
+                    w = i
+                else:
+                    w = i - stack[-1] - 1
+                if w == 1:
+                    w = 0
+                temp = max(temp, h * w)
+            stack.append(i)
+        Output_List.append(temp)
+
+
+
+def size_of_largest_parallelogram():
+    x = find_largest(grid)
+    y = find_largest(r_grid())
+    z = find_largest(l_grid())
+    output = max(x, y, z)
+
+    return output
+
+
+# REPLACE PASS ABOVE WITH YOUR CODE
+
+
+# POSSIBLY DEFINE OTHER FUNCTIONS
+
+
+try:
+
+    for_seed, density = (int(x) for x in input('Enter two integers, the second '
+                                               'one being strictly positive: '
+                                               ).split()
+                         )
+    if density <= 0:
+        raise ValueError
+except ValueError:
+    print('Incorrect input, giving up.')
+    sys.exit()
+
+seed(for_seed)
+grid = [[int(randrange(density) != 0) for _ in range(dim)]
+        for _ in range(dim)
+        ]
+print('Here is the grid that has been generated:')
+display_grid()
+size = size_of_largest_parallelogram()
+if size:
+    print('The largest parallelogram with horizontal sides '
+          f'has a size of {size}.'
+          )
+else:
+    print('There is no parallelogram with horizontal sides.')
+
+
